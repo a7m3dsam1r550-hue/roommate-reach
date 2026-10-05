@@ -45,12 +45,12 @@ function AuthPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const parsed = creds.safeParse({ email, password });
-    if (!parsed.success) return toast.error(parsed.error.issues[0].message);
+    if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? "Invalid input"); return; }
     setBusy(true);
     if (mode === "signin") {
       const { error } = await supabase.auth.signInWithPassword(parsed.data);
       setBusy(false);
-      if (error) return toast.error(error.message);
+      if (error) { toast.error(error.message); return; }
       navigate({ to: "/app", replace: true });
     } else {
       const { data, error } = await supabase.auth.signUp({
@@ -58,7 +58,7 @@ function AuthPage() {
         options: { emailRedirectTo: window.location.origin, data: { full_name: name.trim() || undefined } },
       });
       setBusy(false);
-      if (error) return toast.error(error.message);
+      if (error) { toast.error(error.message); return; }
       if (data.session) navigate({ to: "/app", replace: true });
       else toast.success("Check your email to confirm your manager account.");
     }

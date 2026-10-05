@@ -47,9 +47,9 @@ function RoomCard({ a, now, onChange }: { a: Assignment; now: number; onChange: 
 
   async function saveCount(field: "morning_guests" | "evening_guests", value: string) {
     const n = value === "" ? null : Number(value);
-    if (n !== null && (!Number.isInteger(n) || n < 0 || n > 50)) return toast.error("Guest count must be 0–50");
+    if (n !== null && (!Number.isInteger(n) || n < 0 || n > 50)) { toast.error("Guest count must be 0–50"); return; }
     if (n === a[field]) return;
-    const { error } = await supabase.from("room_assignments").update({ [field]: n }).eq("id", a.id);
+    const { error } = await supabase.from("room_assignments").update(field === "morning_guests" ? { morning_guests: n } : { evening_guests: n }).eq("id", a.id);
     if (error) toast.error(error.message);
     else toast.success("Guest count saved");
   }
@@ -58,7 +58,7 @@ function RoomCard({ a, now, onChange }: { a: Assignment; now: number; onChange: 
     setBusy(true);
     const { error } = await supabase.rpc(kind === "in" ? "room_check_in" : "room_check_out", { _id: a.id });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success(kind === "in" ? `Entered room ${a.room_number}` : `Exited room ${a.room_number}`);
     onChange();
   }

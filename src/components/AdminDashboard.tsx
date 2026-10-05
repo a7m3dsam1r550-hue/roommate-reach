@@ -152,13 +152,13 @@ function AssignDialog({ date, housemen }: { date: string; housemen: Staff[] }) {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const list = Array.from(new Set(rooms.split(/[\s,]+/).map((r) => r.trim()).filter(Boolean)));
-    if (!who) return toast.error("Choose a houseman");
-    if (!list.length || list.some((r) => !/^[A-Za-z0-9-]{1,10}$/.test(r))) return toast.error("Enter valid room numbers");
+    if (!who) { toast.error("Choose a houseman"); return; }
+    if (!list.length || list.some((r) => !/^[A-Za-z0-9-]{1,10}$/.test(r))) { toast.error("Enter valid room numbers"); return; }
     setBusy(true);
     const { error } = await supabase.from("room_assignments")
       .insert(list.map((room_number) => ({ room_number, houseman_id: who, work_date: date })));
     setBusy(false);
-    if (error) return toast.error(error.code === "23505" ? "One of those rooms is already assigned for this day" : error.message);
+    if (error) { toast.error(error.code === "23505" ? "One of those rooms is already assigned for this day" : error.message); return; }
     toast.success(`${list.length} room(s) assigned`);
     setRooms("");
     setOpen(false);
@@ -200,7 +200,7 @@ function StaffDialog() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (form.password.length < 8) return toast.error("Password must be at least 8 characters");
+    if (form.password.length < 8) { toast.error("Password must be at least 8 characters"); return; }
     setBusy(true);
     try {
       await create({ data: form });
