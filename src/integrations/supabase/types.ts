@@ -14,16 +14,107 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      room_assignments: {
+        Row: {
+          created_at: string
+          ended_at: string | null
+          evening_guests: number | null
+          houseman_id: string
+          id: string
+          morning_guests: number | null
+          room_number: string
+          started_at: string | null
+          work_date: string
+        }
+        Insert: {
+          created_at?: string
+          ended_at?: string | null
+          evening_guests?: number | null
+          houseman_id: string
+          id?: string
+          morning_guests?: number | null
+          room_number: string
+          started_at?: string | null
+          work_date?: string
+        }
+        Update: {
+          created_at?: string
+          ended_at?: string | null
+          evening_guests?: number | null
+          houseman_id?: string
+          id?: string
+          morning_guests?: number | null
+          room_number?: string
+          started_at?: string | null
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_assignments_houseman_id_fkey"
+            columns: ["houseman_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      admin_exists: { Args: never; Returns: boolean }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      room_check_in: { Args: { _id: string }; Returns: undefined }
+      room_check_out: { Args: { _id: string }; Returns: undefined }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "houseman"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +241,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "houseman"],
+    },
   },
 } as const
