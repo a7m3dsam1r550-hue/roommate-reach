@@ -19,7 +19,7 @@ export function StaffDialog({ roles, hotelId, label = "New account", size }: {
   const qc = useQueryClient();
   const create = useServerFn(createStaff);
   const [open, setOpen] = useState(false);
-  const blank = { fullName: "", email: "", password: "", role: roles[0] };
+  const blank = { fullName: "", email: "", password: "", role: roles[0] as CreatableRole };
   const [form, setForm] = useState(blank);
   const [busy, setBusy] = useState(false);
 
