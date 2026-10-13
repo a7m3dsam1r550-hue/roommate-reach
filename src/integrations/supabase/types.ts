@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      hotels: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          max_managers: number
+          max_staff: number
+          max_supervisors: number
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          max_managers?: number
+          max_staff?: number
+          max_supervisors?: number
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          max_managers?: number
+          max_staff?: number
+          max_supervisors?: number
+          name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -40,6 +70,7 @@ export type Database = {
           created_at: string
           ended_at: string | null
           evening_guests: number | null
+          hotel_id: string | null
           houseman_id: string
           id: string
           morning_guests: number | null
@@ -51,6 +82,7 @@ export type Database = {
           created_at?: string
           ended_at?: string | null
           evening_guests?: number | null
+          hotel_id?: string | null
           houseman_id: string
           id?: string
           morning_guests?: number | null
@@ -62,6 +94,7 @@ export type Database = {
           created_at?: string
           ended_at?: string | null
           evening_guests?: number | null
+          hotel_id?: string | null
           houseman_id?: string
           id?: string
           morning_guests?: number | null
@@ -71,8 +104,87 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "room_assignments_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "room_assignments_houseman_id_fkey"
             columns: ["houseman_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_roles: {
+        Row: {
+          created_at: string
+          hotel_id: string | null
+          role: Database["public"]["Enums"]["staff_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hotel_id?: string | null
+          role: Database["public"]["Enums"]["staff_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hotel_id?: string | null
+          role?: Database["public"]["Enums"]["staff_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_roles_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          created_at: string
+          hotel_id: string
+          staff_id: string
+          supervisor_id: string
+        }
+        Insert: {
+          created_at?: string
+          hotel_id: string
+          staff_id: string
+          supervisor_id: string
+        }
+        Update: {
+          created_at?: string
+          hotel_id?: string
+          staff_id?: string
+          supervisor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_supervisor_id_fkey"
+            columns: ["supervisor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -110,11 +222,33 @@ export type Database = {
         }
         Returns: boolean
       }
+      hotel_of: { Args: { _user: string }; Returns: string }
+      is_my_team: { Args: { _staff: string }; Returns: boolean }
+      list_hotels: {
+        Args: never
+        Returns: {
+          code: string
+          id: string
+          name: string
+        }[]
+      }
+      my_hotel: { Args: never; Returns: string }
+      my_role: {
+        Args: never
+        Returns: Database["public"]["Enums"]["staff_role"]
+      }
       room_check_in: { Args: { _id: string }; Returns: undefined }
       room_check_out: { Args: { _id: string }; Returns: undefined }
+      super_admin_exists: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "houseman"
+      staff_role:
+        | "super_admin"
+        | "hotel_admin"
+        | "manager"
+        | "supervisor"
+        | "houseman"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -243,6 +377,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "houseman"],
+      staff_role: [
+        "super_admin",
+        "hotel_admin",
+        "manager",
+        "supervisor",
+        "houseman",
+      ],
     },
   },
 } as const
