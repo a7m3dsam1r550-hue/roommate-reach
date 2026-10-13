@@ -8,6 +8,13 @@
       "when": 1791187759189,
       "tag": "0000_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791851136183,
+      "tag": "0001_multi_tenant_hotels",
+      "breakpoints": true
     }
   ]
 }

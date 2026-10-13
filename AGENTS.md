@@ -10,7 +10,7 @@
 <!-- LOVABLE:END -->
 
 ## Architecture rules
-- Roles live in `user_roles` (checked via `has_role`); first signup becomes admin, later users default to houseman — avoids privilege escalation.
+- Roles and hotel membership live in `staff_roles` (one row per user; super_admin has no hotel); RLS isolates tenants via `my_role()`/`my_hotel()` — `user_roles` is deprecated. First signup becomes super_admin; others get roles only via `createStaff`.
 - Room check-in/out timestamps are set only by the `room_check_in`/`room_check_out` DB functions (server `now()`) — prevents client clock tampering.
-- Staff accounts are created by managers via the `createStaff` server function using the admin client after a role check.
+- Accounts are created via the `createStaff` server function (super_admin→hotel_admin, hotel_admin→manager, manager→supervisor/houseman) which enforces hotel quotas before using the admin client.
 - Room status and duration are derived from timestamps, never stored.

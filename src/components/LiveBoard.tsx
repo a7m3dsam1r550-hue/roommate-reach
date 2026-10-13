@@ -1,10 +1,7 @@
 import { useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Plus, Trash2, UserPlus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { createStaff } from "@/lib/staff.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,35 +9,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useAssignments, useNow } from "@/hooks/use-assignments";
+import { nameOf, type Member } from "@/hooks/use-staff";
 import { durationMs, fmtDuration, fmtTime, statusOf, todayISO, type Status } from "@/lib/rooms";
 
-type Staff = { id: string; email: string; full_name: string | null; isAdmin: boolean };
-
-function useStaff() {
-  return useQuery({
-    queryKey: ["staff"],
-    queryFn: async () => {
-      const [{ data: profiles }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("id,email,full_name").order("full_name"),
-        supabase.from("user_roles").select("user_id,role"),
-      ]);
-      const admins = new Set((roles ?? []).filter((r) => r.role === "admin").map((r) => r.user_id));
-      return (profiles ?? []).map((p) => ({ ...p, isAdmin: admins.has(p.id) })) as Staff[];
-    },
-  });
-}
-
-export function AdminDashboard() {
+/** Live room board. Managers can assign/remove; supervisors see read-only (RLS limits rows to their team). */
+export function LiveBoard({ members, readOnly, title, subtitle }: {
+  members: Member[]; readOnly?: boolean; title: string; subtitle: string;
+}) {
   const [date, setDate] = useState(todayISO());
   const [filter, setFilter] = useState<Status | "all">("all");
-  const { data: rows = [] } = useAssignments(date);
-  const { data: staff = [] } = useStaff();
+  const [who, setWho] = useState<string>("all");
+  const { data: all = [] } = useAssignments(date);
   const now = useNow();
-  const housemen = staff.filter((s) => !s.isAdmin);
-  const nameOf = (id: string) => {
-    const s = staff.find((x) => x.id === id);
-    return s?.full_name || s?.email || "—";
-  };
+  const housemen = members.filter((s) => s.role === "houseman");
+  const label = (id: string) => nameOf(members.find((x) => x.id === id));
+  const rows = all.filter((r) => who === "all" || r.houseman_id === who);
 
   const counts = useMemo(() => {
     const c = { pending: 0, in_progress: 0, completed: 0 };
@@ -60,15 +43,21 @@ export function AdminDashboard() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold flex items-center gap-2">
-            Live board <span className="h-2 w-2 rounded-full bg-status-done animate-pulse" />
-          </h1>
-          <p className="text-sm text-muted-foreground">Updates instantly as housemen check in and out.</p>
+          <h2 className="font-display text-2xl font-bold flex items-center gap-2">
+            {title} <span className="h-2 w-2 rounded-full bg-status-done animate-pulse" />
+          </h2>
+          <p className="text-sm text-muted-foreground">{subtitle}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-auto" />
-          <AssignDialog date={date} housemen={housemen} />
-          <StaffDialog />
+          <Select value={who} onValueChange={setWho}>
+            <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All staff</SelectItem>
+              {housemen.map((h) => <SelectItem key={h.id} value={h.id}>{nameOf(h)}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          {!readOnly && <AssignDialog date={date} housemen={housemen} />}
         </div>
       </div>
 
@@ -78,10 +67,10 @@ export function AdminDashboard() {
           ["pending", "Pending", counts.pending],
           ["in_progress", "In progress", counts.in_progress],
           ["completed", "Completed", counts.completed],
-        ] as const).map(([k, label, n]) => (
+        ] as const).map(([k, l, n]) => (
           <button key={k} onClick={() => setFilter(k)}
             className={`rounded-xl border p-4 text-left transition ${filter === k ? "border-primary bg-primary/5" : "bg-card"}`}>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">{l}</p>
             <p className="font-display text-3xl font-bold mt-1">{n}</p>
           </button>
         ))}
@@ -98,22 +87,24 @@ export function AdminDashboard() {
           <div className="hidden md:block rounded-xl border bg-card overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-muted text-muted-foreground text-xs uppercase tracking-wider">
-                <tr>{["Room", "Houseman", "Status", "Start", "End", "Duration", "AM", "PM", ""].map((h) => <th key={h} className="px-4 py-3 text-left font-semibold">{h}</th>)}</tr>
+                <tr>{["Room", "Houseman", "Status", "Start", "End", "Duration", "AM", "PM", ...(readOnly ? [] : [""])].map((h) => <th key={h} className="px-4 py-3 text-left font-semibold">{h}</th>)}</tr>
               </thead>
               <tbody>
                 {visible.map((r) => (
                   <tr key={r.id} className="border-t">
                     <td className="px-4 py-3 font-display font-bold text-base">{r.room_number}</td>
-                    <td className="px-4 py-3">{nameOf(r.houseman_id)}</td>
+                    <td className="px-4 py-3">{label(r.houseman_id)}</td>
                     <td className="px-4 py-3"><StatusBadge status={statusOf(r)} /></td>
                     <td className="px-4 py-3 tabular-nums">{fmtTime(r.started_at)}</td>
                     <td className="px-4 py-3 tabular-nums">{fmtTime(r.ended_at)}</td>
                     <td className="px-4 py-3 tabular-nums">{fmtDuration(durationMs(r, now))}</td>
                     <td className="px-4 py-3">{r.morning_guests ?? "—"}</td>
                     <td className="px-4 py-3">{r.evening_guests ?? "—"}</td>
-                    <td className="px-4 py-3 text-right">
-                      <Button variant="ghost" size="icon" onClick={() => remove(r.id)} aria-label="Remove"><Trash2 className="h-4 w-4" /></Button>
-                    </td>
+                    {!readOnly && (
+                      <td className="px-4 py-3 text-right">
+                        <Button variant="ghost" size="icon" onClick={() => remove(r.id)} aria-label="Remove"><Trash2 className="h-4 w-4" /></Button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -125,7 +116,7 @@ export function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="font-display text-2xl font-bold">{r.room_number}</span>
-                    <p className="text-sm text-muted-foreground">{nameOf(r.houseman_id)}</p>
+                    <p className="text-sm text-muted-foreground">{label(r.houseman_id)}</p>
                   </div>
                   <StatusBadge status={statusOf(r)} />
                 </div>
@@ -143,7 +134,7 @@ export function AdminDashboard() {
   );
 }
 
-function AssignDialog({ date, housemen }: { date: string; housemen: Staff[] }) {
+function AssignDialog({ date, housemen }: { date: string; housemen: Member[] }) {
   const [open, setOpen] = useState(false);
   const [who, setWho] = useState("");
   const [rooms, setRooms] = useState("");
@@ -174,9 +165,7 @@ function AssignDialog({ date, housemen }: { date: string; housemen: Staff[] }) {
             <Label>Houseman</Label>
             <Select value={who} onValueChange={setWho}>
               <SelectTrigger><SelectValue placeholder={housemen.length ? "Select houseman" : "Create a staff account first"} /></SelectTrigger>
-              <SelectContent>
-                {housemen.map((h) => <SelectItem key={h.id} value={h.id}>{h.full_name || h.email}</SelectItem>)}
-              </SelectContent>
+              <SelectContent>{housemen.map((h) => <SelectItem key={h.id} value={h.id}>{nameOf(h)}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
@@ -185,53 +174,6 @@ function AssignDialog({ date, housemen }: { date: string; housemen: Staff[] }) {
             <p className="text-xs text-muted-foreground">Separate with commas or spaces.</p>
           </div>
           <Button type="submit" className="w-full" disabled={busy}>{busy ? "Saving…" : "Assign"}</Button>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function StaffDialog() {
-  const qc = useQueryClient();
-  const create = useServerFn(createStaff);
-  const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ fullName: "", email: "", password: "", role: "houseman" as "houseman" | "admin" });
-  const [busy, setBusy] = useState(false);
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (form.password.length < 8) { toast.error("Password must be at least 8 characters"); return; }
-    setBusy(true);
-    try {
-      await create({ data: form });
-      toast.success(`Account created for ${form.email}`);
-      setForm({ fullName: "", email: "", password: "", role: "houseman" });
-      qc.invalidateQueries({ queryKey: ["staff"] });
-      setOpen(false);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not create account");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button variant="outline"><UserPlus className="h-4 w-4" /> New staff</Button></DialogTrigger>
-      <DialogContent>
-        <DialogHeader><DialogTitle>Create staff account</DialogTitle></DialogHeader>
-        <form onSubmit={submit} className="space-y-4">
-          <div className="space-y-1.5"><Label>Full name</Label><Input required maxLength={100} value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} /></div>
-          <div className="space-y-1.5"><Label>Email</Label><Input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-          <div className="space-y-1.5"><Label>Temporary password</Label><Input required minLength={8} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></div>
-          <div className="space-y-1.5">
-            <Label>Role</Label>
-            <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as "houseman" | "admin" })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent><SelectItem value="houseman">Houseman</SelectItem><SelectItem value="admin">Manager</SelectItem></SelectContent>
-            </Select>
-          </div>
-          <Button type="submit" className="w-full" disabled={busy}>{busy ? "Creating…" : "Create account"}</Button>
         </form>
       </DialogContent>
     </Dialog>
