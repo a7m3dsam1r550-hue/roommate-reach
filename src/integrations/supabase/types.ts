@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      broadcasts: {
+        Row: {
+          author_id: string
+          hotel_id: string
+          message: string
+          updated_at: string
+          work_date: string
+        }
+        Insert: {
+          author_id?: string
+          hotel_id: string
+          message?: string
+          updated_at?: string
+          work_date?: string
+        }
+        Update: {
+          author_id?: string
+          hotel_id?: string
+          message?: string
+          updated_at?: string
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "broadcasts_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotels: {
         Row: {
           code: string
@@ -43,6 +75,44 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      notifications: {
+        Row: {
+          assignment_id: string | null
+          created_at: string
+          hotel_id: string
+          houseman_id: string | null
+          id: string
+          kind: string
+          message: string
+        }
+        Insert: {
+          assignment_id?: string | null
+          created_at?: string
+          hotel_id: string
+          houseman_id?: string | null
+          id?: string
+          kind: string
+          message: string
+        }
+        Update: {
+          assignment_id?: string | null
+          created_at?: string
+          hotel_id?: string
+          houseman_id?: string | null
+          id?: string
+          kind?: string
+          message?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -75,6 +145,7 @@ export type Database = {
           id: string
           morning_guests: number | null
           room_number: string
+          room_status: string | null
           started_at: string | null
           work_date: string
         }
@@ -87,6 +158,7 @@ export type Database = {
           id?: string
           morning_guests?: number | null
           room_number: string
+          room_status?: string | null
           started_at?: string | null
           work_date?: string
         }
@@ -99,6 +171,7 @@ export type Database = {
           id?: string
           morning_guests?: number | null
           room_number?: string
+          room_status?: string | null
           started_at?: string | null
           work_date?: string
         }
@@ -115,6 +188,146 @@ export type Database = {
             columns: ["houseman_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      room_notes: {
+        Row: {
+          assignment_id: string
+          author_id: string
+          body: string
+          created_at: string
+          hotel_id: string
+          id: string
+          is_maintenance: boolean
+          photos: string[]
+        }
+        Insert: {
+          assignment_id: string
+          author_id?: string
+          body?: string
+          created_at?: string
+          hotel_id: string
+          id?: string
+          is_maintenance?: boolean
+          photos?: string[]
+        }
+        Update: {
+          assignment_id?: string
+          author_id?: string
+          body?: string
+          created_at?: string
+          hotel_id?: string
+          id?: string
+          is_maintenance?: boolean
+          photos?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_notes_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "room_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_notes_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      room_sessions: {
+        Row: {
+          assignment_id: string
+          created_at: string
+          ended_at: string | null
+          hotel_id: string
+          houseman_id: string
+          id: string
+          note: string | null
+          started_at: string
+        }
+        Insert: {
+          assignment_id: string
+          created_at?: string
+          ended_at?: string | null
+          hotel_id: string
+          houseman_id: string
+          id?: string
+          note?: string | null
+          started_at?: string
+        }
+        Update: {
+          assignment_id?: string
+          created_at?: string
+          ended_at?: string | null
+          hotel_id?: string
+          houseman_id?: string
+          id?: string
+          note?: string | null
+          started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_sessions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "room_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_sessions_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      signoffs: {
+        Row: {
+          author_id: string
+          created_at: string
+          hotel_id: string
+          id: string
+          kind: string
+          note: string
+          report: Json | null
+          signature: string
+          work_date: string
+        }
+        Insert: {
+          author_id?: string
+          created_at?: string
+          hotel_id: string
+          id?: string
+          kind: string
+          note?: string
+          report?: Json | null
+          signature?: string
+          work_date?: string
+        }
+        Update: {
+          author_id?: string
+          created_at?: string
+          hotel_id?: string
+          id?: string
+          kind?: string
+          note?: string
+          report?: Json | null
+          signature?: string
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signoffs_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
             referencedColumns: ["id"]
           },
         ]
@@ -209,12 +422,42 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_tasks: {
+        Row: {
+          body: string
+          hotel_id: string
+          updated_at: string
+          weekday: number
+        }
+        Insert: {
+          body?: string
+          hotel_id: string
+          updated_at?: string
+          weekday: number
+        }
+        Update: {
+          body?: string
+          hotel_id?: string
+          updated_at?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_tasks_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       admin_exists: { Args: never; Returns: boolean }
+      can_see_assignment: { Args: { _id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -239,6 +482,10 @@ export type Database = {
       }
       room_check_in: { Args: { _id: string }; Returns: undefined }
       room_check_out: { Args: { _id: string }; Returns: undefined }
+      room_check_out_note: {
+        Args: { _id: string; _note: string }
+        Returns: undefined
+      }
       super_admin_exists: { Args: never; Returns: boolean }
     }
     Enums: {
