@@ -7,7 +7,25 @@ export type Assignment = {
   evening_guests: number | null;
   started_at: string | null;
   ended_at: string | null;
+  hotel_id?: string | null;
+  room_status?: string | null;
 };
+
+export const ROOM_CODES: { code: string; label: string }[] = [
+  { code: "D.N.D", label: "Do Not Disturb" },
+  { code: "R.S", label: "Refused Service" },
+  { code: "D.L", label: "Double Lock" },
+  { code: "S.N", label: "Service Needed" },
+  { code: "S.O", label: "Sleep Out" },
+  { code: "N.L", label: "No Luggage" },
+  { code: "V.C", label: "Vacant Clean" },
+  { code: "V.D", label: "Vacant Dirty" },
+  { code: "O.O.S", label: "Out of Service" },
+  { code: "O.O.O", label: "Out of Order" },
+];
+export const codeLabel = (c?: string | null) => ROOM_CODES.find((r) => r.code === c)?.label ?? "";
+/** Codes meaning the houseman could not get into / service the room. */
+export const SKIP_CODES = ["D.N.D", "R.S", "D.L", "S.O", "O.O.S", "O.O.O"];
 
 export type Status = "pending" | "in_progress" | "completed";
 
