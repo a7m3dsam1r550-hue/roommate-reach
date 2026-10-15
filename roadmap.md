@@ -1,13 +1,13 @@
 # Roadmap — RoomRound upgrade
 Database side is done (room status, sessions, notes/photos, maintenance, notifications, weekly tasks, broadcasts, sign-offs). The screens below still need building:
 
-- [ ] Houseman: status dropdown (D.N.D, R.S, D.L, S.N, S.O, N.L, V.C, V.D, O.O.S, O.O.O)
-- [ ] Houseman: multiple check-in/out sessions with notes
-- [ ] Room grid + room detail page with history
-- [ ] Pending / Completed filter buttons
-- [ ] PM guests locked until check-in
-- [ ] Photo uploads on notes (needs storage bucket) + maintenance toggle
-- [ ] Skipped/unaccessed rooms list
+- [x] Houseman: status dropdown (D.N.D, R.S, D.L, S.N, S.O, N.L, V.C, V.D, O.O.S, O.O.O)
+- [x] Houseman: multiple check-in/out sessions with notes
+- [x] Room grid + room detail page with history
+- [x] Pending / Completed filter buttons
+- [x] PM guests locked until check-in
+- [x] Photo uploads on notes (needs storage bucket) + maintenance toggle
+- [x] Skipped/unaccessed rooms list
 - [ ] Weekly task schedule (manager edits, shown to supervisor/houseman)
 - [ ] Occupancy report table (live)
 - [ ] Supervisor broadcast banner
