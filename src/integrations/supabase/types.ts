@@ -288,6 +288,64 @@ export type Database = {
           },
         ]
       }
+      shift_stamps: {
+        Row: {
+          approved_at: string
+          hotel_id: string
+          houseman_id: string
+          id: string
+          summary: Json
+          supervisor_id: string
+          supervisor_name: string
+          verification_status: string
+          work_date: string
+        }
+        Insert: {
+          approved_at?: string
+          hotel_id: string
+          houseman_id: string
+          id?: string
+          summary?: Json
+          supervisor_id: string
+          supervisor_name: string
+          verification_status?: string
+          work_date: string
+        }
+        Update: {
+          approved_at?: string
+          hotel_id?: string
+          houseman_id?: string
+          id?: string
+          summary?: Json
+          supervisor_id?: string
+          supervisor_name?: string
+          verification_status?: string
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_stamps_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_stamps_houseman_id_fkey"
+            columns: ["houseman_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_stamps_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       signoffs: {
         Row: {
           author_id: string
@@ -457,6 +515,26 @@ export type Database = {
     }
     Functions: {
       admin_exists: { Args: never; Returns: boolean }
+      approve_shift_stamp: {
+        Args: { _houseman_id: string; _work_date: string }
+        Returns: {
+          approved_at: string
+          hotel_id: string
+          houseman_id: string
+          id: string
+          summary: Json
+          supervisor_id: string
+          supervisor_name: string
+          verification_status: string
+          work_date: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "shift_stamps"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       can_see_assignment: { Args: { _id: string }; Returns: boolean }
       has_role: {
         Args: {

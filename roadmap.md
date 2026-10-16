@@ -11,7 +11,7 @@ Database side is done (room status, sessions, notes/photos, maintenance, notific
 - [x] Weekly task schedule (manager edits, shown to supervisor/houseman)
 - [x] Occupancy report table (live)
 - [ ] Supervisor broadcast banner
-- [ ] Supervisor sign-off with signature
+- [ ] Supervisor staff review and one-tap official clearance stamp, visible to houseman and manager
 - [ ] AM / PM reports with "Save & Submit to Manager"
 - [ ] Manager "End Shift" PDF export
 - [ ] Live notification alerts for manager/supervisor
