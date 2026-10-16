@@ -22,6 +22,13 @@
       "when": 1792120634297,
       "tag": "0002_room_status_constraint_occ",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792127107448,
+      "tag": "0003_official_supervisor_shift_stamps",
+      "breakpoints": true
     }
   ]
 }
