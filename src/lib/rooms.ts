@@ -20,6 +20,7 @@ export const ROOM_CODES: { code: string; label: string }[] = [
   { code: "N.L", label: "No Luggage" },
   { code: "V.C", label: "Vacant Clean" },
   { code: "V.D", label: "Vacant Dirty" },
+  { code: "OCC", label: "Occupied" },
   { code: "O.O.S", label: "Out of Service" },
   { code: "O.O.O", label: "Out of Order" },
 ];

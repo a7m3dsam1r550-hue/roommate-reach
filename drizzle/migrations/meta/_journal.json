@@ -15,6 +15,13 @@
       "when": 1791851136183,
       "tag": "0001_multi_tenant_hotels",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792120634297,
+      "tag": "0002_room_status_constraint_occ",
+      "breakpoints": true
     }
   ]
 }
