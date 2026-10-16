@@ -8,8 +8,8 @@ Database side is done (room status, sessions, notes/photos, maintenance, notific
 - [x] PM guests locked until check-in
 - [x] Photo uploads on notes (needs storage bucket) + maintenance toggle
 - [x] Skipped/unaccessed rooms list
-- [ ] Weekly task schedule (manager edits, shown to supervisor/houseman)
-- [ ] Occupancy report table (live)
+- [x] Weekly task schedule (manager edits, shown to supervisor/houseman)
+- [x] Occupancy report table (live)
 - [ ] Supervisor broadcast banner
 - [ ] Supervisor sign-off with signature
 - [ ] AM / PM reports with "Save & Submit to Manager"
