@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
+import { TodayTask } from "@/components/WeeklyTasks";
 import { useAssignments } from "@/hooks/use-assignments";
 import { SKIP_CODES, codeLabel, statusOf, todayISO } from "@/lib/rooms";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,7 @@ export function HousemanView({ userId }: { userId: string }) {
 
   return (
     <div>
+      <TodayTask />
       <div className="flex items-end justify-between mb-4">
         <div>
           <h1 className="font-display text-2xl font-bold">My rooms</h1>
