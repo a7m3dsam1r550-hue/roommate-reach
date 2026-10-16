@@ -11,6 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LiveBoard } from "@/components/LiveBoard";
 import { StaffDialog } from "@/components/StaffDialog";
+import { OccupancyReport } from "@/components/OccupancyReport";
+import { TodayTask, WeeklyTasksEditor } from "@/components/WeeklyTasks";
 import { ROLE_LABEL, nameOf, useMembers, useTeams, type Member, type StaffRole } from "@/hooks/use-staff";
 
 type Hotel = { id: string; name: string; code: string; max_managers: number; max_supervisors: number; max_staff: number };
@@ -180,10 +182,12 @@ export function ManagerDashboard({ hotelId }: { hotelId: string }) {
   return (
     <Tabs defaultValue="board" className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <TabsList><TabsTrigger value="board">Live board</TabsTrigger><TabsTrigger value="teams">Teams</TabsTrigger><TabsTrigger value="staff">Staff</TabsTrigger></TabsList>
+        <TabsList className="flex-wrap h-auto"><TabsTrigger value="board">Live board</TabsTrigger><TabsTrigger value="occupancy">Occupancy</TabsTrigger><TabsTrigger value="tasks">Weekly tasks</TabsTrigger><TabsTrigger value="teams">Teams</TabsTrigger><TabsTrigger value="staff">Staff</TabsTrigger></TabsList>
         <StaffDialog roles={["houseman", "supervisor"]} label="New staff" />
       </div>
       <TabsContent value="board"><LiveBoard members={members} title="Live board" subtitle="Updates instantly as housemen check in and out." /></TabsContent>
+      <TabsContent value="occupancy"><OccupancyReport /></TabsContent>
+      <TabsContent value="tasks"><WeeklyTasksEditor hotelId={hotelId} /></TabsContent>
       <TabsContent value="teams"><TeamsPanel members={members} hotelId={hotelId} /></TabsContent>
       <TabsContent value="staff" className="space-y-4">
         {hotel && <QuotaCard hotel={hotel} members={members} />}
@@ -235,7 +239,16 @@ export function SupervisorDashboard({ userId, hotelId }: { userId: string; hotel
   const { data: teams = [] } = useTeams();
   const team = new Set(teams.filter((t) => t.supervisor_id === userId).map((t) => t.staff_id));
   return (
-    <LiveBoard readOnly members={members.filter((m) => team.has(m.id))}
-      title="My team" subtitle={`Live monitoring for ${team.size} assigned staff member(s).`} />
+    <div>
+      <TodayTask />
+      <Tabs defaultValue="board" className="space-y-6">
+        <TabsList><TabsTrigger value="board">My team</TabsTrigger><TabsTrigger value="occupancy">Occupancy</TabsTrigger></TabsList>
+        <TabsContent value="board">
+          <LiveBoard readOnly members={members.filter((m) => team.has(m.id))}
+            title="My team" subtitle={`Live monitoring for ${team.size} assigned staff member(s).`} />
+        </TabsContent>
+        <TabsContent value="occupancy"><OccupancyReport /></TabsContent>
+      </Tabs>
+    </div>
   );
 }
