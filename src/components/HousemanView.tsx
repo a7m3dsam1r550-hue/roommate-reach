@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TodayTask } from "@/components/WeeklyTasks";
 import { useAssignments } from "@/hooks/use-assignments";
+import { useShiftStamps } from "@/hooks/use-shift-stamps";
+import { SupervisorStamp } from "@/components/SupervisorStamp";
 import { SKIP_CODES, codeLabel, statusOf, todayISO } from "@/lib/rooms";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +15,8 @@ type Filter = "all" | "pending" | "completed";
 export function HousemanView({ userId }: { userId: string }) {
   const date = todayISO();
   const { data = [], isLoading } = useAssignments(date, userId);
+  const { data: stamps = [] } = useShiftStamps(date);
+  const myStamp = stamps.find((s) => s.houseman_id === userId);
   const [filter, setFilter] = useState<Filter>("all");
   const done = data.filter((a) => a.ended_at).length;
   const shown = data.filter((a) => filter === "all" || (filter === "completed" ? statusOf(a) === "completed" : statusOf(a) === "pending"));
@@ -21,6 +25,7 @@ export function HousemanView({ userId }: { userId: string }) {
   return (
     <div>
       <TodayTask />
+      {myStamp && <SupervisorStamp stamp={myStamp} />}
       <div className="flex items-end justify-between mb-4">
         <div>
           <h1 className="font-display text-2xl font-bold">My rooms</h1>
