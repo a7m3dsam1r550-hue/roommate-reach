@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LiveBoard } from "@/components/LiveBoard";
 import { StaffDialog } from "@/components/StaffDialog";
 import { OccupancyReport } from "@/components/OccupancyReport";
+import { StaffSignoff } from "@/components/StaffSignoff";
 import { TodayTask, WeeklyTasksEditor } from "@/components/WeeklyTasks";
 import { ROLE_LABEL, nameOf, useMembers, useTeams, type Member, type StaffRole } from "@/hooks/use-staff";
 
@@ -242,12 +243,13 @@ export function SupervisorDashboard({ userId, hotelId }: { userId: string; hotel
     <div>
       <TodayTask />
       <Tabs defaultValue="board" className="space-y-6">
-        <TabsList><TabsTrigger value="board">My team</TabsTrigger><TabsTrigger value="occupancy">Occupancy</TabsTrigger></TabsList>
+        <TabsList><TabsTrigger value="board">My team</TabsTrigger><TabsTrigger value="occupancy">Occupancy</TabsTrigger><TabsTrigger value="signoff">Staff Review &amp; Sign-off</TabsTrigger></TabsList>
         <TabsContent value="board">
           <LiveBoard readOnly members={members.filter((m) => team.has(m.id))}
             title="My team" subtitle={`Live monitoring for ${team.size} assigned staff member(s).`} />
         </TabsContent>
         <TabsContent value="occupancy"><OccupancyReport /></TabsContent>
+        <TabsContent value="signoff"><StaffSignoff members={members.filter((m) => team.has(m.id) && m.role === "houseman")} /></TabsContent>
       </Tabs>
     </div>
   );

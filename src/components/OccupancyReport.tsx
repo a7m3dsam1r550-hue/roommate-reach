@@ -3,13 +3,29 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Wrench } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAssignments } from "@/hooks/use-assignments";
+import { useShiftStamps } from "@/hooks/use-shift-stamps";
+import { SupervisorStamp } from "@/components/SupervisorStamp";
 import { codeLabel, todayISO } from "@/lib/rooms";
 
 export function OccupancyReport() {
   const date = todayISO();
   const qc = useQueryClient();
   const { data: rooms = [], isLoading } = useAssignments(date);
+  const { data: stamps = [] } = useShiftStamps(date);
   const ids = rooms.map((r) => r.id);
+
+  const housemanIds = [...new Set(rooms.map((r) => r.houseman_id))];
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["occ-profiles", housemanIds.join(",")],
+    enabled: housemanIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("id,full_name,email").in("id", housemanIds);
+      if (error) throw error;
+      return data;
+    },
+  });
+  const nameOf = (id: string) => profiles.find((p) => p.id === id)?.full_name || profiles.find((p) => p.id === id)?.email || "Staff member";
+  const visibleStamps = stamps.filter((s) => housemanIds.includes(s.houseman_id));
 
   const { data: notes = [] } = useQuery({
     queryKey: ["occ-notes", date, ids.join(",")],
@@ -42,6 +58,19 @@ export function OccupancyReport() {
         <div><h2 className="font-display text-xl font-bold">Occupancy report</h2><p className="text-sm text-muted-foreground">Live · {rooms.length} rooms</p></div>
         <p className="text-sm">AM guests <b>{totalAm}</b> · PM guests <b>{totalPm}</b></p>
       </div>
+      {visibleStamps.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="font-display text-sm font-bold uppercase tracking-wider text-muted-foreground">Cleared shifts</h3>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {visibleStamps.map((s) => (
+              <div key={s.id} className="space-y-1">
+                <p className="text-sm font-semibold">{nameOf(s.houseman_id)}</p>
+                <SupervisorStamp stamp={s} compact />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="overflow-x-auto rounded-xl border bg-card">
         <table className="w-full text-sm">
           <thead className="bg-muted text-left text-xs uppercase tracking-wider text-muted-foreground">
