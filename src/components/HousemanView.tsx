@@ -24,8 +24,8 @@ export function HousemanView({ userId }: { userId: string }) {
 
   return (
     <div>
-      <TodayTask />
       {myStamp && <SupervisorStamp stamp={myStamp} />}
+      <TodayTask />
       <div className="flex items-end justify-between mb-4">
         <div>
           <h1 className="font-display text-2xl font-bold">My rooms</h1>
